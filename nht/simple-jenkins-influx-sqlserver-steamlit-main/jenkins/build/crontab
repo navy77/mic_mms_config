@@ -1,5 +1,0 @@
-# START CRON JOB
-PATH=/usr/local/bin
-0 * * * * python3 /app/main.py
-* * * * * python3 /app/main2.py
-# END CRON JOB
