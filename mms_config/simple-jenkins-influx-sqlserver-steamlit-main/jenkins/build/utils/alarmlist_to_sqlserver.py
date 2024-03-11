@@ -121,7 +121,7 @@ class ALARMLIST(PREPARE):
             client = InfluxDBClient(self.influx_server, 8086, self.influx_user_login,self.influx_password, self.influx_database)
             mqtt_topic_value = list(str(self.mqtt_topic).split(","))
             for i in range(len(mqtt_topic_value)):
-                query = f"select status,topic,yyyy,mm,dd,hh,min,sec from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 10"
+                query = f"select status,topic,yyyy,mm,dd,hh,min,sec from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 100"
                 result = client.query(query)
                 result_df = pd.DataFrame(result.get_points())
                 result_lists.append(result_df)
@@ -162,7 +162,7 @@ class ALARMLIST(PREPARE):
     def query_sql(self):
         try:
             engine1 = create_engine(f'mssql+pymssql://{self.user_login}:{self.password}@{self.server}/{self.database}')
-            sql_query = f"""SELECT TOP 20 * FROM [{self.database}].[dbo].[{self.table}] ORDER by registered_at desc"""
+            sql_query = f"""SELECT TOP 100 * FROM [{self.database}].[dbo].[{self.table}] ORDER by registered_at desc"""
             df_sql = pd.read_sql(sql_query, engine1)
             df_sql.rename(columns={'registered_at': 'data_timestamp'}, inplace=True)
             columns = df_sql.columns.tolist()
