@@ -5,7 +5,7 @@ import sys
 import utils.alert as alert
 import pymssql
 import json
-
+import urllib.parse
 from datetime import datetime,date, timedelta
 from sqlalchemy import create_engine,text,engine
 from influxdb import InfluxDBClient
@@ -161,7 +161,8 @@ class ALARMLIST(PREPARE):
 
     def query_sql(self):
         try:
-            engine1 = create_engine(f'mssql+pymssql://{self.user_login}:{self.password}@{self.server}/{self.database}')
+            encoded_password = urllib.parse.quote_plus(self.password)
+            engine1 = create_engine(f'mssql+pymssql://{self.user_login}:{encoded_password}@{self.server}/{self.database}')
             sql_query = f"""SELECT TOP 100 * FROM [{self.database}].[dbo].[{self.table}] ORDER by registered_at desc"""
             df_sql = pd.read_sql(sql_query, engine1)
             df_sql.rename(columns={'registered_at': 'data_timestamp'}, inplace=True)
