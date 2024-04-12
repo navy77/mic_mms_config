@@ -145,6 +145,7 @@ class INFLUX_TO_SQLSERVER(PREPARE):
             df["data_timestamp"] =   pd.to_datetime(df["data_timestamp"]).dt.tz_convert(None)
             df["data_timestamp"] = df["data_timestamp"] + pd.DateOffset(hours=7)    
             df["data_timestamp"] = df['data_timestamp'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
+            df.fillna(0,inplace=True)
             self.df_insert = df
         except Exception as e:
             self.error_msg(self.edit_col.__name__,"cannot edit dataframe data",e)
