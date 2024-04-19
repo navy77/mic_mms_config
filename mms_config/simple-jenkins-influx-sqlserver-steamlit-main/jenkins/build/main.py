@@ -22,10 +22,10 @@ try:
             password=os.getenv('PASSWORD'),
             table=os.getenv('TABLE_1'),
             table_columns=os.getenv('PRODUCTION_TABLE_COLUMNS'),
+            
             table_log=os.getenv('TABLE_LOG_1'),
             table_columns_log=os.getenv('TABLE_COLUMNS_LOG'),
             initial_db=os.getenv('INITIAL_DB'),
-
             influx_server=os.getenv('INFLUX_SERVER'),
             influx_database=os.getenv('INFLUX_DATABASE'),
             influx_user_login=os.getenv('INFLUX_USER_LOGIN'),

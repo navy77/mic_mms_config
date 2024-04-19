@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 project_type_1 = os.environ["PROJECT_TYPE_1"]
 project_type_2 = os.environ["PROJECT_TYPE_2"]
 project_type_3 = os.environ["PROJECT_TYPE_3"]
@@ -67,4 +66,3 @@ try:
         print("ERROR: UNKNOWN PROJECT TYPE!")
 except Exception as e:
     print(e)
-    

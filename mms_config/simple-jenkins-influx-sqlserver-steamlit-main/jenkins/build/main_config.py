@@ -80,7 +80,7 @@ def preview_influx(st,influx_server,influx_user_login,influx_password,influx_dat
             client = InfluxDBClient(influx_server, 8086,influx_user_login,influx_password,influx_database)
 
             if mqtt_topic.split('/')[0] =='data':
-                query1 = f"select time,topic,lot,wos,d_str1,d_str2,{column_names} from mqtt_consumer where topic = '{mqtt_topic}' order by time desc limit 5"
+                query1 = f"select time,topic,wos,d_str1,d_str2,{column_names} from mqtt_consumer where topic = '{mqtt_topic}' order by time desc limit 5"
                 result1 = client.query(query1)
                 if list(result1):
                     query_list1 = list(result1)[0]
@@ -357,7 +357,7 @@ def config_sensor_registry_add():
 
         sensor_value = None
         sensor_registry = list(str(os.environ["COLUMN_NAMES"]).split(","))
-        table_column_value = "registered_at datetime,mc_no varchar(10),process varchar(10),lot varchar(15),wos varchar(25),d_str1 varchar(15),d_str2 varchar(15)"
+        table_column_value = "registered_at datetime,mc_no varchar(10),process varchar(10),wos varchar(25),d_str1 varchar(15),d_str2 varchar(15)"
 
         col1,col2 = st.columns(2)
         
@@ -395,7 +395,7 @@ def config_sensor_registry_delete():
 
         sensor_value = None
         sensor_registry = list(str(os.environ["COLUMN_NAMES"]).split(","))
-        table_column_value = "registered_at datetime,mc_no varchar(10),process varchar(10),lot varchar(15),wos varchar(25),d_str1 varchar(15),d_str2 varchar(15)"
+        table_column_value = "registered_at datetime,mc_no varchar(10),process varchar(10),wos varchar(25),d_str1 varchar(15),d_str2 varchar(15)"
 
         col1, col2 = st.columns(2)
 
