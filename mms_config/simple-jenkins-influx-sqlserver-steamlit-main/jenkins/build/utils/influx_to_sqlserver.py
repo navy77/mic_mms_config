@@ -110,7 +110,6 @@ class PREPARE:
             self.info_msg(self.log_to_db.__name__,e)
             sys.exit()
  
-
 class INFLUX_TO_SQLSERVER(PREPARE):
     def __init__(self,server,database,user_login,password,table,table_columns,table_log,table_columns_log,influx_server,influx_database,influx_user_login,influx_password,column_names,mqtt_topic,initial_db,line_notify_flag,line_notify_token=None):
         super().__init__(server,database,user_login,password,table,table_columns,table_log,table_columns_log,line_notify_token,influx_server,influx_database,influx_user_login,influx_password,column_names,mqtt_topic,initial_db,line_notify_flag)        
@@ -120,8 +119,9 @@ class INFLUX_TO_SQLSERVER(PREPARE):
             result_lists = []
             client = InfluxDBClient(self.influx_server, 8086, self.influx_user_login,self.influx_password, self.influx_database)
             mqtt_topic_value = list(str(self.mqtt_topic).split(","))
+        
             for i in range(len(mqtt_topic_value)):
-                query = f"select time,topic,lot,model,d_str1,d_str2,{self.column_names} from mqtt_consumer where topic = '{mqtt_topic_value[i]}' order by time desc limit 1"
+                query = f"select time,topic,wos,d_str1,d_str2,{self.column_names} from mqtt_consumer where topic = '{mqtt_topic_value[i]}' order by time desc limit 1"
                 result = client.query(query)
                 if list(result):
                     result = list(result)[0][0]
@@ -131,6 +131,7 @@ class INFLUX_TO_SQLSERVER(PREPARE):
                     result_df=None
                     self.info_msg(self.lastone.__name__,"influxdb data is emply")
             self.df_influx = result_df
+            
         except Exception as e:
             self.error_msg(self.lastone.__name__,"cannot query influxdb",e)
     
@@ -152,7 +153,7 @@ class INFLUX_TO_SQLSERVER(PREPARE):
 
     def df_to_db(self):
         #connect to db
-        init_list = ['mc_no','process','lot','model','d_str1','d_str2']
+        init_list = ['mc_no','process','wos','d_str1','d_str2']
         insert_db_value = self.column_names.split(",")
         col_list = init_list+insert_db_value
         cnxn,cursor=self.conn_sql()

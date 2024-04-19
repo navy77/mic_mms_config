@@ -121,7 +121,7 @@ class MCSTATUS(PREPARE):
             client = InfluxDBClient(self.influx_server, 8086, self.influx_user_login,self.influx_password, self.influx_database)
             mqtt_topic_value = list(str(self.mqtt_topic).split(","))
             for i in range(len(mqtt_topic_value)):
-                query = f"select status,topic,yyyy,mm,dd,hh,min,sec from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 100"
+                query = f"select time,status,topic from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 100"
                 result = client.query(query)
                 result_df = pd.DataFrame(result.get_points())
                 result_lists.append(result_df)
@@ -141,19 +141,10 @@ class MCSTATUS(PREPARE):
                 df['mc_no'] = df_split[3].values
                 df['process'] = df_split[2].values
                 df.drop(columns=['topic'],inplace=True)
-                df.rename(columns = {'time':'data_timestamp'}, inplace = True)
-                df["data_timestamp"] =   pd.to_datetime(df["data_timestamp"]).dt.tz_convert(None)
-                df["data_timestamp"] = df["data_timestamp"] + pd.DateOffset(hours=7)    
-                df["data_timestamp"] = df['data_timestamp'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
-                df["occurred"] = df['yyyy'].astype(int).astype(str)+ '-' +  df['mm'].astype(int).astype(str)+ '-' +  df['dd'].astype(int).astype(str)+ '-' +  df['hh'].astype(int).astype(str)+ '-' +  df['min'].astype(int).astype(str)+ '-' +  df['sec'].astype(int).astype(str)
-                df["occurred"] = pd.to_datetime(df["occurred"], format="%Y-%m-%d-%H-%M-%S")
+                df.rename(columns = {'time':'occurred'}, inplace = True)
+                df["occurred"] =   pd.to_datetime(df["occurred"]).dt.tz_convert(None)
+                df["occurred"] = df["occurred"] + pd.DateOffset(hours=7)    
                 df["occurred"] = df['occurred'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-                df.drop(columns=['yyyy'],inplace=True)
-                df.drop(columns=['mm'],inplace=True)
-                df.drop(columns=['dd'],inplace=True)
-                df.drop(columns=['hh'],inplace=True)
-                df.drop(columns=['min'],inplace=True)
-                df.drop(columns=['sec'],inplace=True)
                 df.rename(columns={'status': 'mc_status'}, inplace=True)
                 self.df_influx = df
             except Exception as e:
@@ -165,10 +156,10 @@ class MCSTATUS(PREPARE):
             engine1 = create_engine(f'mssql+pymssql://{self.user_login}:{encoded_password}@{self.server}/{self.database}')
             sql_query = f"""SELECT TOP 100 * FROM [{self.database}].[dbo].[{self.table}] ORDER by registered_at desc"""
             df_sql = pd.read_sql(sql_query, engine1)
-            df_sql.rename(columns={'registered_at': 'data_timestamp'}, inplace=True)
             columns = df_sql.columns.tolist()
             new_order = [columns[0], columns[2], columns[3],columns[4], columns[1]]
             self.df_sql = df_sql[new_order]
+
             if self.df_sql.empty :
                 self.info_msg(self.query_sql.__name__,f"data is emply")
             return self.df_sql
@@ -178,17 +169,18 @@ class MCSTATUS(PREPARE):
     def check_duplicate(self):
         try:
             df_from_influx = self.df_influx
-            df_from_sql = self.df_sql        
+            df_from_sql = self.df_sql       
             df_from_influx['occurred'] = pd.to_datetime(df_from_influx['occurred'])
             df_from_sql['occurred'] = pd.to_datetime(df_from_sql['occurred'])
-            df_right_only = pd.merge(df_from_sql,df_from_influx , on = ["occurred","mc_no","mc_status","process"], how = "right", indicator = True) 
-            df_right_only = df_right_only[df_right_only['_merge'] == 'right_only'].drop(columns=['_merge'])
-            if df_right_only.empty:    
+            merged_df = df_from_influx.merge(df_from_sql,on=["occurred","mc_no","mc_status","process"],how= 'left',indicator = True)
+            df_not_duplicate = merged_df[merged_df['_merge'] == 'left_only'].drop(columns=['registered_at', '_merge'])
+            if df_not_duplicate.empty:    
                 self.df_insert=None     
                 self.info_msg(self.check_duplicate.__name__,f"data is not new for update")
             else:
                 self.info_msg(self.check_duplicate.__name__,f"we have data new")
-                self.df_insert = df_right_only       
+                self.df_insert = df_not_duplicate       
+
                 return constant.STATUS_OK   
         except Exception as e:
             self.error_msg(self.check_duplicate.__name__,"cannot select with sql code",e)
@@ -196,7 +188,7 @@ class MCSTATUS(PREPARE):
     def df_to_db(self):
         #connect to db
         mcstatus_list = ['occurred','mc_status','mc_no','process']
-        cnxn,cursor=self.conn_sql()
+        cnxn,cursor = self.conn_sql()
         try:
             if not self.df_insert is None:  
                 df = self.df_insert
@@ -232,7 +224,7 @@ class MCSTATUS(PREPARE):
             if self.df_influx is not None:
                 self.edit_col()
                 self.query_sql()
-                if self.df_sql is None:
+                if self.df_sql.empty:
                     self.df_insert = self.df_influx
                     self.df_to_db()
                     self.ok_msg(self.df_to_db.__name__)
