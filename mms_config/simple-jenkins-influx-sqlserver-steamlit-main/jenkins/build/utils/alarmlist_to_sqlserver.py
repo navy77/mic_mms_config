@@ -121,7 +121,7 @@ class ALARMLIST(PREPARE):
             client = InfluxDBClient(self.influx_server, 8086, self.influx_user_login,self.influx_password, self.influx_database)
             mqtt_topic_value = list(str(self.mqtt_topic).split(","))
             for i in range(len(mqtt_topic_value)):
-                query = f"select time,status,topic from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 100"
+                query = f"select time,status,topic from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 50"
                 result = client.query(query)
                 result_df = pd.DataFrame(result.get_points())
                 result_lists.append(result_df)
@@ -154,7 +154,7 @@ class ALARMLIST(PREPARE):
         try:
             encoded_password = urllib.parse.quote_plus(self.password)
             engine1 = create_engine(f'mssql+pymssql://{self.user_login}:{encoded_password}@{self.server}/{self.database}')
-            sql_query = f"""SELECT TOP 100 * FROM [{self.database}].[dbo].[{self.table}] ORDER by registered_at desc"""
+            sql_query = f"""SELECT TOP 1000 * FROM [{self.database}].[dbo].[{self.table}] ORDER by registered_at desc"""
             df_sql = pd.read_sql(sql_query, engine1)
             columns = df_sql.columns.tolist()
             new_order = [columns[0], columns[2], columns[3],columns[4], columns[1]]
