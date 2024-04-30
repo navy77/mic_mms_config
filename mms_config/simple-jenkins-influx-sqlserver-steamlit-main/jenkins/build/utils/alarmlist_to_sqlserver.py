@@ -121,7 +121,7 @@ class ALARMLIST(PREPARE):
             client = InfluxDBClient(self.influx_server, 8086, self.influx_user_login,self.influx_password, self.influx_database)
             mqtt_topic_value = list(str(self.mqtt_topic).split(","))
             for i in range(len(mqtt_topic_value)):
-                query = f"select time,status,topic from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 50"
+                query = f"select time,status,topic from mqtt_consumer where topic ='{mqtt_topic_value[i]}' order by time desc limit 30"
                 result = client.query(query)
                 result_df = pd.DataFrame(result.get_points())
                 result_lists.append(result_df)
