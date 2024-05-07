@@ -129,9 +129,9 @@ class INFLUX_TO_SQLSERVER(PREPARE):
                     result = list(result)[0][0]
                     result_lists.append(result)
                     result_df = pd.DataFrame.from_dict(result_lists)
-                else:
-                    result_df=None
-                    self.info_msg(self.lastone.__name__,"influxdb data is emply")
+                #else:
+                    #result_df=None
+                    #self.info_msg(self.lastone.__name__,"influxdb data is emply")
             self.df_influx = result_df
 
             
