@@ -141,27 +141,19 @@ class INFLUX_TO_SQLSERVER(PREPARE):
     
     def lastone_accum(self) :
         try:
-            columns_to_sum = ['ball_c1_ok','ball_c2_ok','ball_c3_ok','ball_c4_ok','ball_c5_ok','ball_c1_ng','ball_c2_ng','ball_c3_ng','ball_c4_ng','ball_c5_ng']
-            columns_not_sum = ['time', 'topic', 'd_str1', 'd_str2','rssi','ball_c1_remain','ball_c2_remain','ball_c3_remain','ball_c4_remain','ball_c5_remain',
-                               'ball_gauge_c1','ball_gauge_c2','ball_gauge_c3','ball_gauge_c4','ball_gauge_c5','rtnr_ok','rtnr_ng','ball_sepa_ng','ball_shot_ng',
-                               'production_daily_ok','production_daily_ng','average_cycle_time','ball_use_brg']
-            
+            # columns_to_sum = ['ball_c1_ok','ball_c2_ok','ball_c3_ok','ball_c4_ok','ball_c5_ok','ball_c1_ng','ball_c2_ng','ball_c3_ng','ball_c4_ng','ball_c5_ng']
+            # columns_not_sum = ['time', 'topic', 'd_str1', 'd_str2','rssi','ball_c1_remain','ball_c2_remain','ball_c3_remain','ball_c4_remain','ball_c5_remain',
+            #                    'ball_gauge_c1','ball_gauge_c2','ball_gauge_c3','ball_gauge_c4','ball_gauge_c5','rtnr_ok','rtnr_ng','ball_sepa_ng','ball_shot_ng',
+            #                    'production_daily_ok','production_daily_ng','average_cycle_time','ball_use_brg']
+            columns_to_sum = ['ball_c1_ok']
+            columns_not_sum = ['time', 'topic', 'd_str1', 'd_str2']
             client = InfluxDBClient(self.influx_server, 8086, self.influx_user_login,self.influx_password, self.influx_database)
             mqtt_topic_value = list(str(self.mqtt_topic).split(","))
-            today = datetime.date.today()
-            current_hr = datetime.datetime.now().hour
-            previous_hr = datetime.datetime.now().hour - 1
-            target_timezone = 'Asia/Bangkok'
-            local_tz = pytz.timezone(target_timezone)
 
-            dt1 = datetime.datetime.combine(today, datetime.time(current_hr, 00))
-            dt1 = local_tz.localize(dt1)
-            current_time_epoch = int(dt1.timestamp()) * 1000 * 1000 * 1000
-
-            dt2 = datetime.datetime.combine(today, datetime.time(previous_hr, 00))
-            dt2 = local_tz.localize(dt2)
-            previous_time_epoch = int(dt2.timestamp()) * 1000 * 1000 * 1000
-
+            now = datetime.datetime.now()
+            current_time_epoch = int(time.time()) * 1000 *1000 *1000
+            one_hour_ago = now - datetime.timedelta(hours=1)
+            previous_time_epoch = int(one_hour_ago.timestamp()) * 1000 *1000 *1000
             df_data = pd.DataFrame(columns=['time'] + columns_to_sum)
 
             for i in range(len(mqtt_topic_value)):
@@ -171,10 +163,11 @@ class INFLUX_TO_SQLSERVER(PREPARE):
                 if not df_result.empty:
                     df_result = df_result.sort_values(by='time',ascending=False)
                     df_result = df_result.fillna(0)
+                    df_result = df_result[df_result['wos'] != '0']
                     df_result['judge'] = df_result.groupby('wos')['ball_c1_ok'].diff().fillna(0) > 0
                     df1 = df_result.groupby('wos').head(1)
                     df2 = df_result[df_result['judge']]
-
+ 
                     for wos_value in df1['wos'].unique():
                         df1_filtered = df1[df1['wos'] == wos_value]
                         df2_filtered = df2[df2['wos'] == wos_value]
