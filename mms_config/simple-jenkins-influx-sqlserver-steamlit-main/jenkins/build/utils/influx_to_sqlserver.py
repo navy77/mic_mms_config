@@ -13,8 +13,6 @@ import pytz
 
 
 class PREPARE:
-
-
     def __init__(self,server,database,user_login,password,table,table_columns,table_log,table_columns_log,line_notify_token,influx_server,influx_database,influx_user_login,influx_password,column_names,mqtt_topic,initial_db,line_notify_flag):
         self.server = server
         self.database = database
@@ -37,7 +35,6 @@ class PREPARE:
         self.initial_db = initial_db
         self.line_notify_flag = line_notify_flag
 
-
     def stamp_time(self):
         now = datetime.datetime.now()
         print("\nHi this is job run at -- %s"%(now.strftime("%Y-%m-%d %H:%M:%S")))
@@ -54,7 +51,7 @@ class PREPARE:
         except Exception as e:
             self.info_msg(self.error_msg.__name__,e)
             sys.exit()
-    
+            
     def alert_line(self,msg):
         value = alert.line_notify(self.line_notify_token,msg)
         value = json.loads(value)  
@@ -78,7 +75,7 @@ class PREPARE:
             print(result)
         except Exception as e:
             self.error_msg(self.ok_msg.__name__,'cannot ok msg to log',e)
-    
+            
     def conn_sql(self):
         #connect to db
         try:
@@ -133,11 +130,8 @@ class INFLUX_TO_SQLSERVER(PREPARE):
                     #result_df=None
                     #self.info_msg(self.lastone.__name__,"influxdb data is emply")
             self.df_influx = result_df
-
-            
         except Exception as e:
             self.error_msg(self.lastone.__name__,"cannot query influxdb",e)
-    
     
     def lastone_accum(self) :
         try:
