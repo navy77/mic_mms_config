@@ -6,11 +6,9 @@ import utils.alert as alert
 import pymssql
 import json
 import datetime
-# from datetime import datetime,date, timedelta
 from sqlalchemy import create_engine,text,engine
 from influxdb import InfluxDBClient
-import pytz
-
+import time
 
 class PREPARE:
     def __init__(self,server,database,user_login,password,table,table_columns,table_log,table_columns_log,line_notify_token,influx_server,influx_database,influx_user_login,influx_password,column_names,mqtt_topic,initial_db,line_notify_flag):
