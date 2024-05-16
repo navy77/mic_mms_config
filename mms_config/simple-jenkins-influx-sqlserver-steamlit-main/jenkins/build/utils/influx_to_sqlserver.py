@@ -232,7 +232,7 @@ class INFLUX_TO_SQLSERVER(PREPARE):
     #     self.stamp_time()
     #     if self.initial_db == 'True':
     #         self.lastone()
-    #         if self.df_influx is not None:
+    #         if not self.df_influx.empty:
     #             self.edit_col()
     #             self.df_to_db()
     #             self.ok_msg(self.df_to_db.__name__)
@@ -245,7 +245,6 @@ class INFLUX_TO_SQLSERVER(PREPARE):
             self.lastone_accum()
             if not self.df_influx.empty:
                 self.edit_col()
-                print(self.df_insert)
                 self.df_to_db()
                 self.ok_msg(self.df_to_db.__name__)
         else:
